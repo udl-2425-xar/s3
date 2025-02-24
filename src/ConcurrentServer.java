@@ -5,7 +5,7 @@ import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public class InteractiveServer {
+public class ConcurrentServer {
     private static int port = 1213;
 
     public static void main(String[] args) {
@@ -16,15 +16,32 @@ public class InteractiveServer {
             for(;;){
                 System.out.println("A la espera d'un nou client");
                 Socket socket = ss.accept();
-
                 // crea el thread i fa que atengui al client
-                // TODO
+                Thread client = new Thread(new ClientAttender(socket));
+                client.start();
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static class ClientAttender implements Runnable{
+
+        private final Socket socket;
+        public ClientAttender(Socket s){
+            this.socket = s;
+        }
+
+        @Override
+        public void run() {
+            try {
                 System.out.println("Ha arribat un client");
                 System.out.println(socket.getInetAddress().getHostAddress());
 
                 String entrada = "";
                 // llegir de l'input
-                InputStream is = socket.getInputStream();
+                InputStream is;
+                is = socket.getInputStream();
                 DataInputStream dis = new DataInputStream(is);
                 DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
 
@@ -42,9 +59,9 @@ public class InteractiveServer {
                 dis.close();
                 dos.close();
                 socket.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
     }
 }
